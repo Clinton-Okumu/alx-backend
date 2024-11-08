@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
+
 """
-Use user locale
+Basic Flask app
 """
 
-from crypt import methods
-from email import header
-import babel
 from flask import Flask, render_template, request, g
 from flask_babel import Babel
 import pytz
-import requests
+from pytz.exceptions import UnknownTimeZoneError
 
 app = Flask(__name__)
 babel = Babel(app)
@@ -17,7 +15,7 @@ babel = Babel(app)
 
 class Config:
     """
-    Config class
+    Config class.
     """
     LANGUAGES = ["en", "fr"]
     BABEL_DEFAULT_LOCALE = "en"
@@ -36,7 +34,7 @@ users = {
 
 def get_user(login_as):
     """
-    get_user
+    get_user.
     """
     try:
         return users.get(int(login_as))
@@ -47,7 +45,7 @@ def get_user(login_as):
 @app.before_request
 def before_request():
     """
-    before request
+    before_request
     """
     g.user = get_user(request.args.get("login_as"))
 
@@ -55,17 +53,17 @@ def before_request():
 @babel.localeselector
 def get_locale():
     """
-    get_locale
+    get_locale.
     """
     locale = request.args.get("locale")
     if locale:
         return locale
-    user = request.args.get('login_as')
+    user = request.args.get("login_as")
     if user:
-        lang = user.get(int(user)).get('locale')
+        lang = users.get(int(user)).get('locale')
         if lang in app.config['LANGUAGES']:
             return lang
-    headers = request.headers.get('locale')
+    headers = request.headers.get("locale")
     if headers:
         return headers
     return request.accept_languages.best_match(app.config['LANGUAGES'])
@@ -88,18 +86,18 @@ def get_timezone():
         timezone = request.headers.get("timezone")
         if timezone:
             return pytz.timezone(timezone)
-    except pytz.UnknownTimeZoneError:
+    except UnknownTimeZoneError:
         return app.config.get('BABEL_DEFAULT_TIMEZONE')
     return app.config.get('BABEL_DEFAULT_TIMEZONE')
 
 
-@app.route('/', methods=['GET'], strict_slashes=False)
-def index():
+@app.route('/', methods=["GET"], strict_slashes=False)
+def hello():
     """
-    hello world
+    hello.
     """
-    return render_template('7-index.html')
+    return render_template('index.html')
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port="5000")
